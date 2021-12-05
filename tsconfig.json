@@ -1,16 +1,12 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2016",
-    "strict": true,
-    "noImplicitAny": true,
-    "declaration": true
-  },
-  "lib": ["dom"],
-  "includes": ["src/**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "scripts/**",
-    "src/**/*.spec.ts"
-  ]
+    "extends": "@zardoy/tsconfig/tsconfig",
+    "compilerOptions": {
+        "noEmit": false,
+        "target": "ESNext",
+        "lib": ["ESNext", "ESNext.Array", "ES2019", "DOM"],
+        "noEmitOnError": false,
+        "outDir": "build"
+    },
+    "include": ["src"],
+    "exclude": ["**/*.spec.ts"]
 }

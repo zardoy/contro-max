@@ -1,142 +1,120 @@
-import { IGamepad, INavigator, IWindow  } from '../apis'
-import { Control, TriggerControl  } from '../core/control'
-import { findButtonNumber, getButtonLabel } from '../maps/gamepad'
-import store from '../store'
-import { Vector2 } from '../utils/math'
+import Emittery from 'emittery'
+import { findButtonNumber, GamepadButtonName } from '../gamepad'
 
 export interface GamepadStick {
-  label: string
-  xAxis: number
-  yAxis: number
+    label: string
+    xAxis: number
+    yAxis: number
 }
 
-const gamepadSticks: { [id: string]: GamepadStick } = {
-  left: { label: 'Left stick', xAxis: 0, yAxis: 1 },
-  right: { label: 'Right stick', xAxis: 2, yAxis: 3 },
+export const gamepadSticks: { [id in 'left' | 'right']: GamepadStick } = {
+    left: { label: 'Left stick', xAxis: 0, yAxis: 1 },
+    right: { label: 'Right stick', xAxis: 2, yAxis: 3 },
 }
 
-export class Gamepad {
+// TODO!
+// if (gamepad.timestamp > this.gamepadTimestamp) {
 
-  private window: IWindow
-  private navigator: INavigator
+type WhichGamepad = 'all' | 0 | 1 | 2 | 3
 
-  private pressedButtons: Set<number> = new Set()
-  private gamepadIndex: number | undefined
-  private gamepadTimestamp = 0
-
-  constructor(
-    /* istanbul ignore next */
-    { win = window, nav = navigator as any }: { win?: IWindow, nav?: INavigator } = {},
-  ) {
-    this.window = win
-    this.navigator = nav
-
-    this.window.addEventListener('gamepadconnected', ({ gamepad }) => {
-      if (this.isConnected()) return
-
-      if (gamepad.mapping === 'standard') {
-        this.gamepadIndex = gamepad.index
-        store.preferGamepad = true
-      }
-    })
-
-    this.window.addEventListener('gamepaddisconnected', ({ gamepad }) => {
-      if (this.gamepadIndex !== gamepad.index) return
-
-      this.gamepadIndex = undefined
-      store.preferGamepad = false
-    })
-  }
-
-  public isConnected(): boolean {
-    return this.gamepadIndex !== undefined && this.gamepad.connected
-  }
-
-  private get gamepad(): IGamepad {
-    const gamepad = this.navigator.getGamepads()[this.gamepadIndex!]
-
-    if (gamepad.timestamp > this.gamepadTimestamp) {
-      store.preferGamepad = true
-      this.gamepadTimestamp = gamepad.timestamp
+export class GamepadsStore extends Emittery<{
+    firstConnected: Gamepad
+    lastDisconnected: undefined
+}> {
+    // static getConnectedGamepadIndexes() {
+    //     return new Set((navigator.getGamepads().filter(Boolean) as Gamepad[]).map(gamepad => gamepad.index))
+    // }
+    static getConnectedGamepads() {
+        return [...navigator.getGamepads()].filter(Boolean) as Gamepad[]
     }
 
-    return gamepad
-  }
+    static isButtonPressed(whichGamepad: WhichGamepad, button: number | GamepadButtonName): boolean {
+        const buttonNumber = findButtonNumber(button)
+        if (whichGamepad === 'all') return navigator.getGamepads().some(gamepad => gamepad?.buttons[buttonNumber]!.pressed)
 
-  public button(button: number | string): TriggerControl<boolean> {
-    const buttonNumber = findButtonNumber(button)
-    const label = getButtonLabel(buttonNumber)
-
-    return {
-      label,
-      query: () => {
-        if (!this.isConnected()) return false
-
-        return this.gamepad.buttons[buttonNumber].pressed
-      },
-      fromGamepad: true,
-      trigger: {
-        label,
-        query: () => {
-          if (!this.isConnected()) return false
-
-          if (this.gamepad.buttons[buttonNumber].pressed) {
-            if (this.pressedButtons.has(buttonNumber)) return false
-
-            this.pressedButtons.add(buttonNumber)
-            return true
-          }
-
-          this.pressedButtons.delete(buttonNumber)
-          return false
-        },
-        fromGamepad: true,
-      },
-    }
-  }
-
-  public stick(stick: string | GamepadStick): Control<Vector2> {
-    let gpStick: GamepadStick
-    if (typeof stick === 'string') {
-      if (stick in gamepadSticks) {
-        gpStick = gamepadSticks[stick]
-      } else {
-        throw new Error(`Gamepad stick "${stick}" not found!`)
-      }
-    } else {
-      gpStick = stick
+        return !!navigator.getGamepads()[whichGamepad]?.buttons[buttonNumber]!.pressed
     }
 
-    return {
-      label: gpStick.label,
-      query: () => {
-        if (!this.isConnected()) return new Vector2(0, 0)
+    static queryStick(stick: keyof typeof gamepadSticks | GamepadStick, gamepad: Gamepad): { x: number; y: number } {
+        // const gamepadConnectedIndex =
+        //     which === 'first'
+        //         ? 0
+        //         : which === 'last'
+        //         ? this.connectedGamepads.length - 1
+        //         : this.connectedGamepads.findIndex(({ index }) => index === which)
+        // const gamepad = this.connectedGamepads[gamepadConnectedIndex]
+        if (gamepad === undefined) throw new Error('Queried disconnected gamepad')
 
-        return new Vector2(
-          this.gamepad.axes[gpStick.xAxis],
-          this.gamepad.axes[gpStick.yAxis],
-        )
-      },
+        const resolvedStick: GamepadStick = typeof stick === 'string' ? gamepadSticks[stick] : stick
+        // if (!this.isConnected()) return?
+
+        return {
+            x: gamepad.axes[resolvedStick.xAxis]!,
+            y: gamepad.axes[resolvedStick.yAxis]!,
+        }
     }
-  }
 
-  public async vibrate(
-    duration: number,
-    { weakMagnitude, strongMagnitude }: VibrationOptions = {},
-  ): Promise<void> {
-    if (!this.isConnected()) return
+    // public connectedGamepadIndexes = GamepadsStore.getConnectedGamepadIndexes()
+    connectedGamepads: Gamepad[] = []
 
-    const actuator = this.gamepad.vibrationActuator
-    if (!actuator || actuator.type !== 'dual-rumble') return
+    constructor() {
+        super()
+        // public enabledGamepad: WhichGamepad = 'all', // public gamepadButtonsMap
+        window.addEventListener('gamepadconnected', this.gamepadEvent.bind(this))
+        window.addEventListener('gamepaddisconnected', this.gamepadEvent.bind(this))
+    }
 
-    await actuator.playEffect('dual-rumble', {
-      duration, strongMagnitude, weakMagnitude,
-    })
-  }
+    // dispose() {
+    //     window.removeEventListener('gamepadconnected', this.gamepadEvent)
+    //     window.removeEventListener('gamepaddisconnected', this.gamepadEvent)
+    // }
 
+    private gamepadEvent({ gamepad, type }: GamepadEvent) {
+        const connectedGamepadsLength = this.connectedGamepads.length
+        if (type === 'gamepadconnected') {
+            if (gamepad.mapping !== 'standard') {
+                console.warn(`Unknown gamepad mapping ${gamepad.mapping}. Ignoring..`)
+                return
+            }
+
+            this.connectedGamepads.push(gamepad)
+        } else {
+            const gamepadIndex = this.connectedGamepads.indexOf(gamepad)
+            // Is this even possible?
+            // if (gamepadIndex === -1) this.connectedGamepads = GamepadsStore.getConnectedGamepads()
+            this.connectedGamepads.splice(gamepadIndex, 1)
+        }
+
+        if (connectedGamepadsLength === 0 && this.connectedGamepads.length > 0)
+            void this.emit('firstConnected', this.connectedGamepads.values().next().value)
+        if (connectedGamepadsLength > 0 && this.connectedGamepads.length === 0) void this.emit('lastDisconnected')
+    }
 }
 
-interface VibrationOptions {
-  strongMagnitude?: number
-  weakMagnitude?: number
-}
+// export const createGamepadsStore = () => {
+//   const ,
+//     disabledGamepadIndexes: number[] = [];
+
+//   return {
+//     connectedGamepads,
+//     /**
+//      * @returns `false` if was already enabled
+//      */
+//     disableGamepad: (gamepadIndex: number) => !disabledGamepadIndexes.includes(gamepadIndex) && (disabledGamepadIndexes.push(gamepadIndex), true),
+//     /**
+//      * @returns `false` if was already enabled
+//      */
+//     enableGamepad: (gamepadIndex: number) => disabledGamepadIndexes.includes(gamepadIndex) &&
+//       (disabledGamepadIndexes.splice(disabledGamepadIndexes.indexOf(gamepadIndex), 1), true),
+//     /**
+//      * @returns whether button is pressed
+//      */
+//     queryButton: (button: string): boolean => {
+
+//     },
+//     queryButton: (button: string | number) => {
+//       const buttonNumber = findButtonNumber(button);
+//       return buttonNumber;
+//     }
+//   };
+// };

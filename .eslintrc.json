@@ -1,0 +1,6 @@
+{
+    "extends": "zardoy",
+    "rules": {
+        "@typescript-eslint/no-for-in-array": "off"
+    }
+}

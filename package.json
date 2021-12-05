@@ -1,74 +1,91 @@
 {
-  "name": "contro",
-  "version": "0.0.0-semantically-released",
-  "description": "Game controls done right.",
-  "main": "dist/contro.js",
-  "types": "dist/index.d.ts",
-  "jsnext:main": "dist/contro.esm.js",
-  "module": "dist/contro.esm.js",
-  "files": [
-    "dist/contro.esm.js",
-    "dist/contro.js",
-    "dist/**/*.d.ts"
-  ],
-  "scripts": {
-    "lint": "run-s lint-*",
-    "lint-ts": "eslint --ext .ts src",
-    "lint-md": "remark .",
-    "test": "nyc mocha src/**/*.spec.ts --require ts-node/register --watch-extensions ts",
-    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
-    "generate-mapping-docs": "ts-node scripts/generate-mapping-docs.ts",
-    "build": "rollup -c && uglifyjs dist/contro.js --comments /^!/ -cm -o dist/contro.min.js",
-    "release": "semantic-release",
-    "clean": "rimraf .nyc_output coverage dist"
-  },
-  "repository": "shroudedcode/contro",
-  "keywords": [
-    "game",
-    "controls",
-    "mouse",
-    "keyboard",
-    "gamepad",
-    "library",
-    "abstraction"
-  ],
-  "author": "Niklas Higi <niklas@shroudedcode.com> (https://shroudedcode.com/)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/shroudedcode/contro/issues"
-  },
-  "homepage": "https://github.com/shroudedcode/contro#readme",
-  "devDependencies": {
-    "@types/chai": "^4.2.11",
-    "@types/fs-extra": "^8.1.0",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "12",
-    "@typescript-eslint/eslint-plugin": "^2.28.0",
-    "@typescript-eslint/parser": "^2.28.0",
-    "chai": "^4.1.2",
-    "codecov": "^3.6.5",
-    "eslint": "^6.8.0",
-    "eslint-plugin-import": "^2.20.2",
-    "mocha": "^7.1.1",
-    "npm-run-all": "^4.1.2",
-    "nyc": "^15.0.1",
-    "remark-cli": "^8.0.0",
-    "remark-lint": "^7.0.0",
-    "remark-lint-no-empty-url": "^2.0.0",
-    "remark-preset-lint-markdown-style-guide": "^3.0.0",
-    "remark-preset-lint-recommended": "^4.0.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.6.1",
-    "rollup-plugin-typescript2": "^0.27.0",
-    "semantic-release": "^17.0.4",
-    "ts-node": "^8.8.2",
-    "typescript": "^3.8.3",
-    "uglify-es": "^3.2.2"
-  },
-  "dependencies": {},
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
+    "name": "contro-max",
+    "version": "0.0.0-dev",
+    "description": "Game controls done even better!",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "module": "dist/index.js",
+    "scripts": {
+        "test:e2e": "start-server-and-test dev http-get://localhost:3000 test:cypress",
+        "start": "tsc",
+        "dev": "vite",
+        "test:cypress": "cypress run",
+        "test:jest": "jest",
+        "test:jest:watch": "pnpm test:jest -- --watch",
+        "test": "wtr test-out/**/*.test.js --puppeteer --node-resolve",
+        "test:watch": "pnpm test -- --watch",
+        "test:prepare": "node esbuild.mjs",
+        "test:prepare:watch": "pnpm test:prepare -- watch",
+        "lint": "eslint src/**"
+    },
+    "keywords": [
+        "game",
+        "controls",
+        "input",
+        "fps",
+        "mouse",
+        "keyboard",
+        "gamepad",
+        "joystick",
+        "controller",
+        "library",
+        "abstraction",
+        "mobile",
+        "movement",
+        "ui",
+        "touch",
+        "react",
+        "mousetrap",
+        "react hooks"
+    ],
+    "author": "Vitaly Turovsky <vital2580@icloud.com>",
+    "license": "MIT",
+    "dependencies": {
+        "emittery": "^0.10.0",
+        "lodash-es": "^4.17.21",
+        "react-use": "^17.3.1",
+        "use-typed-event-listener": "^3.0.0"
+    },
+    "devDependencies": {
+        "@types/expect-puppeteer": "^4.4.7",
+        "@types/jest": "^27.0.3",
+        "@types/jest-environment-puppeteer": "^4.4.1",
+        "@types/lodash-es": "^4.17.5",
+        "@types/puppeteer": "^5.4.4",
+        "@types/react": "^17.0.37",
+        "@web/test-runner": "^0.13.22",
+        "@web/test-runner-playwright": "^0.8.8",
+        "@web/test-runner-puppeteer": "^0.10.4",
+        "@zardoy/tsconfig": "^1.2.2",
+        "@zardoy/vit": "^0.0.1",
+        "esbuild": "^0.14.2",
+        "esbuild-runner": "^2.2.1",
+        "eslint": "^8.4.0",
+        "eslint-config-zardoy": "^0.2.1",
+        "globby": "^12.0.2",
+        "jest": "^27.4.3",
+        "jest-puppeteer": "^6.0.2",
+        "puppeteer": "^12.0.1",
+        "start-server-and-test": "^1.14.0",
+        "type-fest": "^2.8.0",
+        "typescript": "^4.5.2",
+        "vite": "^2.6.14"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-conventional-changelog"
+        }
+    },
+    "optionalDependencies": {
+        "react": "^17.0.2"
+    },
+    "prettier": {
+        "semi": false,
+        "singleQuote": true,
+        "proseWrap": "never",
+        "tabWidth": 4,
+        "trailingComma": "all",
+        "arrowParens": "avoid",
+        "printWidth": 150
     }
-  }
 }
