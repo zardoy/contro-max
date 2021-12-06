@@ -7,7 +7,6 @@ import {
     ControEvents,
     CreateControlsSchemaOptions,
     GroupCommandEventArgument,
-    GroupedCommandEventDeviceType,
     InputCommandsSchema,
     InputGroupedCommandsSchema,
     InputSchemaArg,
@@ -15,11 +14,11 @@ import {
     SchemaCommand,
 } from './types'
 import { keysGroup, getMovementKeysGroup } from './keysUtil'
-import { keysMovementConfig, MovementAction } from './movement'
+import { keysMovementConfig } from './movement'
 import { bindEventListeners } from './eventUtils'
 import { GamepadsStore } from './inputs/gamepad'
 import { GamepadButtonName, getButtonLabel } from './gamepad'
-
+import { UserOverridesConfig } from './types/store'
 const mapKeyboardCodes = {
     // firefox
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -44,10 +43,15 @@ export class ControMax<
 
     /** Raw set of all pressed key at the moment */
     pressedKeys: ReadonlySet<AllKeyCodes>
+    /** Completely disable emitting all events. */
+    disabled = false
 
-    constructor(
-        inputSchema: D,
-        {
+    userConfig: UserOverridesConfig | undefined
+
+    constructor(inputSchema: D, public options: CreateControlsSchemaOptions = {}) {
+        super()
+        // TODO!
+        const {
             target = window,
             additionalEventHandlers = true,
             defaultControlOptions,
@@ -55,9 +59,8 @@ export class ControMax<
             listenGamepadsStrategy = 'all-gamepads',
             gamepadPollingInterval = 250,
             emitMovement = 'all',
-        }: CreateControlsSchemaOptions = {},
-    ) {
-        super()
+        } = this.options
+
         this.inputSchema = {
             ...inputSchema,
             commands: mapValues(inputSchema.commands as InputCommandsSchema, group =>
@@ -81,6 +84,20 @@ export class ControMax<
             ),
             // TODO
         } as any
+
+        if (this.options.storeProvider) {
+            const promiseOrConfig = this.options.storeProvider.load()
+            if (typeof promiseOrConfig.then === 'function') {
+                this.disabled = true
+                void promiseOrConfig.then(config => {
+                    this.userConfig = config
+                    void this.emit('userConfigResolve')
+                })
+            } else {
+                this.userConfig = promiseOrConfig as UserOverridesConfig
+                void this.emit('userConfigResolve')
+            }
+        }
 
         const getInitialMovementVector = () => ({ x: 0, y: 0, z: 0 })
 
@@ -275,7 +292,7 @@ export class ControMax<
                 }
 
                 prevPressedButtons = newPressedButtons
-            }) as unknown as number
+            }, gamepadPollingInterval) as unknown as number
         })
         gamepadsStore.on('lastDisconnected', () => {
             clearInterval(pollingInterval)

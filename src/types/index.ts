@@ -3,6 +3,7 @@
 import { LiteralUnion } from 'type-fest'
 import { GamepadButtonName } from '../gamepad'
 import { AllKeyCodes } from './keyCodes'
+import { StoreProvider } from './store'
 
 /** @partial */
 export interface InputCommandOptions {
@@ -127,6 +128,8 @@ export type ControEvents<T extends InputCommandsSchema, K extends InputGroupedCo
     /** usually to switch slots */
     mouseWheen: { direction: -1 | 1 }
     updateLook: MovementVector2d
+
+    userConfigResolve: undefined
 }
 
 // OPTIONS
@@ -171,6 +174,7 @@ export interface CreateControlsSchemaOptions {
      * @default all
      */
     emitMovement?: 'all' | 'split'
+    storeProvider?: StoreProvider
     // canvasElem?: HTMLElement
     // additionalEvents?: {}
 }
