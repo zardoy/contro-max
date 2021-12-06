@@ -1,0 +1,17 @@
+/* TODO use sass as its annoying */
+
+.cm-movement-button {
+    width: 50px;
+    height: 50px;
+    background: rgba(128, 128, 128, 0.8);
+    opacity: 0.9;
+}
+
+.cm-movement-button * {
+    pointer-events: none;
+}
+
+.cm-movement-button-touching {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+}

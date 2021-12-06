@@ -6,8 +6,11 @@
     "types": "dist/index.d.ts",
     "module": "dist/index.js",
     "scripts": {
-        "start": "tsc",
-        "dev": "vite",
+        "build": "stencil build --docs",
+        "start": "stencil build --dev --watch --serve",
+        "test": "stencil test --spec --e2e",
+        "test:watch": "stencil test --spec --e2e --watchAll",
+        "generate": "stencil generate",
         "jest": "jest",
         "jest:watch": "pnpm jest -- --watch",
         "lint": "eslint src/**"
@@ -36,11 +39,14 @@
     "license": "MIT",
     "dependencies": {
         "emittery": "^0.10.0",
+        "fake-tag": "^3.0.0",
         "lodash-es": "^4.17.21",
         "react-use": "^17.3.1",
         "use-typed-event-listener": "^3.0.0"
     },
     "devDependencies": {
+        "@stencil/core": "^2.11.0",
+        "@stencil/eslint-plugin": "^0.4.0",
         "@types/jest": "^27.0.3",
         "@types/lodash-es": "^4.17.5",
         "@types/react": "^17.0.37",
@@ -51,6 +57,7 @@
         "eslint": "^8.4.0",
         "eslint-config-zardoy": "^0.2.1",
         "jest": "^27.4.3",
+        "stencil-inline-svg": "^1.1.0",
         "type-fest": "^2.8.0",
         "typescript": "^4.5.2",
         "vite": "^2.6.14"

@@ -9,6 +9,9 @@ out
 .nuxt
 .cache
 
+components.d.ts
+www
+
 coverage
 *.lcov
 .nyc_output

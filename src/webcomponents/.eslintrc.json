@@ -1,0 +1,7 @@
+{
+    "rules": {
+        "new-cap": "off",
+        "react/*": "off"
+    },
+    "extends": ["plugin:@stencil/recommended"]
+}
