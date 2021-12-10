@@ -1,5 +1,5 @@
 import Emittery from 'emittery'
-import { findButtonNumber, GamepadButtonName } from '../gamepad'
+import { findButtonNumber, GamepadButtonName } from './gamepad'
 
 export interface GamepadStick {
     label: string
@@ -20,6 +20,8 @@ type WhichGamepad = 'all' | 0 | 1 | 2 | 3
 export class GamepadsStore extends Emittery<{
     firstConnected: Gamepad
     lastDisconnected: undefined
+    /** Emits only after queried */
+    nowPrefersGamepad: undefined
 }> {
     // static getConnectedGamepadIndexes() {
     //     return new Set((navigator.getGamepads().filter(Boolean) as Gamepad[]).map(gamepad => gamepad.index))
@@ -28,7 +30,7 @@ export class GamepadsStore extends Emittery<{
         return [...navigator.getGamepads()].filter(Boolean) as Gamepad[]
     }
 
-    static isButtonPressed(whichGamepad: WhichGamepad, button: number | GamepadButtonName): boolean {
+    static queryButton(whichGamepad: WhichGamepad, button: number | GamepadButtonName): boolean {
         const buttonNumber = findButtonNumber(button)
         if (whichGamepad === 'all') return navigator.getGamepads().some(gamepad => gamepad?.buttons[buttonNumber]!.pressed)
 
@@ -54,14 +56,13 @@ export class GamepadsStore extends Emittery<{
         }
     }
 
-    // public connectedGamepadIndexes = GamepadsStore.getConnectedGamepadIndexes()
-    connectedGamepads: Gamepad[] = []
+    public connectedGamepadIndexes = GamepadsStore.getConnectedGamepadIndexes()
 
     constructor() {
         super()
         // public enabledGamepad: WhichGamepad = 'all', // public gamepadButtonsMap
-        window.addEventListener('gamepadconnected', this.gamepadEvent.bind(this))
-        window.addEventListener('gamepaddisconnected', this.gamepadEvent.bind(this))
+        window.addEventListener('gamepadconnected', this.gamepadEvent)
+        window.addEventListener('gamepaddisconnected', this.gamepadEvent)
     }
 
     // dispose() {
@@ -69,7 +70,7 @@ export class GamepadsStore extends Emittery<{
     //     window.removeEventListener('gamepaddisconnected', this.gamepadEvent)
     // }
 
-    private gamepadEvent({ gamepad, type }: GamepadEvent) {
+    gamepadEvent = ({ gamepad, type, ...rest }: GamepadEvent) => {
         const connectedGamepadsLength = this.connectedGamepads.length
         if (type === 'gamepadconnected') {
             if (gamepad.mapping !== 'standard') {

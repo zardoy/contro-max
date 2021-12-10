@@ -1,6 +1,9 @@
 {
     "extends": "zardoy",
     "rules": {
-        "@typescript-eslint/no-for-in-array": "off"
+        "@typescript-eslint/no-for-in-array": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "no-negated-condition": "off",
+        "unicorn/filename-case": "off"
     }
 }

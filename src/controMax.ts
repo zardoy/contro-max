@@ -14,9 +14,9 @@ import {
     SchemaCommand,
 } from './types'
 import { keysGroup, getMovementKeysGroup } from './keysUtil'
-import { keysMovementConfig } from './movement'
+import { keysMovementConfig } from './shared/movement'
 import { bindEventListeners } from './eventUtils'
-import { GamepadsStore } from './inputs/gamepad'
+import { GamepadsStore } from './inputs/gamepadStore'
 import { GamepadButtonName, getButtonLabel } from './gamepad'
 import { UserOverridesConfig } from './types/store'
 const mapKeyboardCodes = {
