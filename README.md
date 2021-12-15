@@ -1,7 +1,5 @@
 # Contro Max &middot; [![npm version][npm-version-badge]][npm-link] &middot; [![coverage][coverage-badge]][coverage-link]
 
-Highly maintained fork of [Contro](https://github.com/shroudedcode/contro). Check out original repository!
-
 ![development status](https://img.shields.io/badge/status-in%20development-orange.svg)
 
 > The package is ESM
