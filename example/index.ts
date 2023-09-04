@@ -17,7 +17,7 @@ const controls = new ControMax({
         },
     },
     movementKeymap: 'WASD',
-    movementVector: '3d',
+    movementVector: '2d',
 })
 
 controls.on('movementUpdate', data => {

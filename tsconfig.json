@@ -3,10 +3,11 @@
     "compilerOptions": {
         "noEmit": false,
         "target": "ESNext",
-        "lib": ["ESNext", "ESNext.Array", "ES2019", "DOM"],
+        "lib": ["ESNext", "ESNext.Array", "DOM"],
+        "declaration": true,
         "noEmitOnError": false,
         "outDir": "build"
     },
     "include": ["src"],
-    "exclude": ["**/*.spec.ts"]
+    "exclude": ["**/*.spec.ts", "src/webcomponents"]
 }

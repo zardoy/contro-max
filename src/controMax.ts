@@ -16,9 +16,10 @@ import {
 import { keysGroup, getMovementKeysGroup } from './keysUtil'
 import { keysMovementConfig } from './shared/movement'
 import { bindEventListeners } from './eventUtils'
-import { GamepadsStore } from './inputs/gamepadStore'
+import { GamepadsStore } from './gamepadStore'
 import { GamepadButtonName, getButtonLabel } from './gamepad'
 import { UserOverridesConfig } from './types/store'
+
 const mapKeyboardCodes = {
     // firefox
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -33,12 +34,14 @@ export class ControMax<
     K extends InputGroupedCommandsSchema,
     M extends MovementVectorType,
     // this generic is hitting performance
-    D extends ({
+    D extends {
         movementVector?: M
-    } & InputSchemaArg<T, K>) &
+    } & InputSchemaArg<T, K> /*  &
         // eslint-disable-next-line @typescript-eslint/ban-types
-        (M extends '3d' ? { upCommand: AllSchemaCommands<T>; downCommand?: AllSchemaCommands<T> } : {}),
-> extends Emittery<ControEvents<T, K, M>> {
+        (M extends '3d' ? { upCommand: AllSchemaCommands<T>; downCommand?: AllSchemaCommands<T> } : {}) */,
+> extends Emittery<ControEvents<D['commands'], K, M>> {
+    /** type only @deprecated */
+    _commandsRaw: D['commands'] = undefined as any
     inputSchema: Except<D, 'commands'> & { commands: { [G in keyof T]: { [C in keyof T[G]]: SchemaCommand } } }
 
     /** Raw set of all pressed key at the moment */
@@ -47,12 +50,23 @@ export class ControMax<
     disabled = false
 
     userConfig: UserOverridesConfig | undefined
+    pressedKeyOrButtonChanged: (
+        codeOrButton: { code: AllKeyCodes } | { gamepadIndex: number; button: GamepadButtonName },
+        buttonPressed: boolean,
+        options?: { preventDefault?: (() => void) | undefined },
+    ) => void
+
+    // invoke: {
+    //     [K in keyof D['commands']]: {
+    //         [X in keyof D['commands'][K]]: () => void
+    //     }
+    // }
 
     constructor(inputSchema: D, public options: CreateControlsSchemaOptions = {}) {
         super()
         // TODO!
         const {
-            target = window,
+            target = window as any,
             additionalEventHandlers = true,
             defaultControlOptions,
             requireTrusted = false,
@@ -121,7 +135,8 @@ export class ControMax<
                     getInitialMovementVector(),
                 )
 
-            const movementVectorToEmit =
+            // todo not clear what happened with auto-infer here
+            const movementVectorToEmit: MovementVector3d =
                 emitMovement === 'all'
                     ? currentMovementVector.all
                     : 'keyboard' in type
@@ -129,7 +144,7 @@ export class ControMax<
                     : currentMovementVector[type.gamepadIndex]
 
             void this.emit('movementUpdate', {
-                ...(inputSchema.movementVector === '2d' ? { ...movementVectorToEmit, y: undefined } : movementVectorToEmit),
+                vector: inputSchema.movementVector === '2d' ? { ...movementVectorToEmit, y: undefined } : (movementVectorToEmit as any),
                 gamepadIndex: 'keyboard' in type ? undefined : type.gamepadIndex,
             })
         }
@@ -137,15 +152,12 @@ export class ControMax<
         this.pressedKeys = new Set<AllKeyCodes>()
 
         // eslint-disable-next-line complexity
-        const pressedKeyOrButtonChanged = (
-            codeOrButton: { code: AllKeyCodes } | { gamepadIndex: number; button: GamepadButtonName },
-            buttonPressed: boolean,
-            { preventDefault: doPreventDefault = () => {} } = {},
-        ) => {
+        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => {} } = {}) => {
             // ;(keydownEvent ? pressedKeys.add : pressedKeys.delete)(code)
             // ignore subsequent keypresses. also possible via event.repeat == true
             if ('code' in codeOrButton) {
                 if (buttonPressed && this.pressedKeys.has(codeOrButton.code)) return
+                if (!buttonPressed && !this.pressedKeys.has(codeOrButton.code)) return
                 this.pressedKeys[buttonPressed ? 'add' : 'delete'](codeOrButton.code)
             }
 
@@ -205,13 +217,16 @@ export class ControMax<
                     if (keyIndex >= keysMovementConfig.length) keyIndex -= keysMovementConfig.length
                     const movementAction = keysMovementConfig[keyIndex]!
                     currentMovementVector.keyboard[movementAction[0]] += movementAction[1] * (buttonPressed ? 1 : -1)
+                    if (defaultControlOptions?.preventDefault ?? true) doPreventDefault()
                     updateMovementVector({ keyboard: true })
                 }
             }
         }
 
         const keyboardEvent = (e: KeyboardEvent) => {
-            if (requireTrusted && !e.isTrusted) return
+            if (options?.captureEvents && !options.captureEvents(e)) return
+            const targetEl = e.composedPath()[0] as HTMLElement
+            if ((requireTrusted && !e.isTrusted) || ['input', 'select', 'textarea'].includes(targetEl.tagName?.toLowerCase())) return
             const keydownEvent = e.type === 'keydown'
 
             let { code } = e
@@ -222,7 +237,7 @@ export class ControMax<
             const codeWithoutSide = /^(.+?)(Left|Right)$/.exec(code)?.[1]
             const codes = codeWithoutSide ? [code, codeWithoutSide] : [code]
             for (const code of codes)
-                pressedKeyOrButtonChanged({ code: code as AllKeyCodes }, keydownEvent, { preventDefault: e.preventDefault.bind(e) })
+                this.pressedKeyOrButtonChanged({ code: code as AllKeyCodes }, keydownEvent, { preventDefault: () => e.preventDefault() })
         }
 
         // BIND EVENTS
@@ -233,7 +248,7 @@ export class ControMax<
 
         const visibilitychangeListener = () => {
             if (document.visibilityState !== 'hidden') return
-            for (const code of this.pressedKeys) pressedKeyOrButtonChanged({ code }, false)
+            for (const code of this.pressedKeys) this.pressedKeyOrButtonChanged({ code }, false)
         }
 
         // For now, all browsers don't fire "keyup" event if the user released key after alt+tab or tab switch
@@ -250,6 +265,7 @@ export class ControMax<
 
             let prevPressedButtons: ButtonsState = []
             pollingInterval = setInterval(() => {
+                if (options?.captureEvents && !options.captureEvents()) return
                 const allConnectedGamepads = [...gamepadsStore.connectedGamepads]
                 // TODO handle disablement in other way
                 // Polling interval would stop if there is no gamepads
@@ -275,7 +291,8 @@ export class ControMax<
                         let pressEvent = undefined as undefined | boolean
                         if (buttonState && !prevPressedButtons[gamepadIndex]?.[buttonIndex]) pressEvent = true
                         if (!buttonState && prevPressedButtons[gamepadIndex]?.[buttonIndex] === true) pressEvent = false
-                        if (pressEvent !== undefined) pressedKeyOrButtonChanged({ button: getButtonLabel(+buttonIndex)!, gamepadIndex }, pressEvent)
+                        if (pressEvent !== undefined)
+                            this.pressedKeyOrButtonChanged({ button: getButtonLabel(+buttonIndex)!, gamepadIndex }, pressEvent)
                     }
 
                 for (const gamepad of gamepads) {

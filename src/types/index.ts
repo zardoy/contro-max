@@ -44,7 +44,7 @@ export type KeysGroup = 'WASD' | 'Arrows' | 'Digits' | 'NumpadDigits' | 'AnyDigi
 
 type KeyboardKey = AllKeyCodes | null /*  | KeysGroupObj */
 
-export type SchemaCommandInput = [KeyboardKey, GamepadButtonName, InputCommandOptions?] | [KeyboardKey, InputCommandOptions?] | null
+export type SchemaCommandInput = [KeyboardKey | AllKeyCodes[], GamepadButtonName?, InputCommandOptions?] | null
 
 // I don't see a better way
 export type InputCommandsSchema = {
@@ -61,10 +61,10 @@ export type InputGroupedCommandsSchema = {
 }
 
 export type InputSchema = {
-    commands: InputCommandsSchema
-    groupedCommands?: InputGroupedCommandsSchema
+    // commands: InputCommandsSchema
+    // groupedCommands?: InputGroupedCommandsSchema
     /**
-     * By default, we're automatically listinening to these keys and update movement vector. Specify null to disable for keyboard
+     * By default, we're automatically listening to these keys and update movement vector. Specify null to disable for keyboard
      * @default null
      */
     movementKeymap?: 'WASD' | 'WASDArrows' | 'Arrows' | null
@@ -126,8 +126,8 @@ export type ControEvents<T extends InputCommandsSchema, K extends InputGroupedCo
     movementUpdate: { vector: M extends '3d' ? MovementVector3d : MovementVector2d } & SourceType
     // works on canvasElem or after registerCanvasElem
     /** usually to switch slots */
-    mouseWheen: { direction: -1 | 1 }
-    updateLook: MovementVector2d
+    mouseWheel: { direction: -1 | 1 }
+    // updateLook: MovementVector2d
 
     userConfigResolve: undefined
 }
@@ -140,6 +140,13 @@ export interface CreateControlsSchemaOptions {
     /** To what bind events
      * @default window */
     target?: KeyboardTarget
+    /**
+     * Sometimes target is dynamic, so you use global target and filter events here
+     *
+     * @param e undefined if is gamepad
+     * @returns continue
+     */
+    captureEvents?: (e?: KeyboardEvent) => boolean
     /**
      * If true, then events that fired programmatically will be ignored
      * @default false

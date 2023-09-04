@@ -17,11 +17,12 @@ describe('GamepadStore', () => {
         index: 0,
         mapping: 'standard',
         timestamp: Math.floor(Date.now() / 1000),
+        vibrationActuator: undefined as any,
     }
     const gamepadStore = new GamepadsStore()
     window.navigator.getGamepads = function () {
-      return [gamepad];
-    };
+        return [gamepad]
+    }
 
     const connectGamepad = () => {
         const event = new Event('gamepadconnected')
@@ -62,7 +63,7 @@ describe('GamepadStore', () => {
         })
         it('queries button', () => {
             connectGamepad()
-            gamepadStore.
+            // gamepadStore.
         })
     })
 })

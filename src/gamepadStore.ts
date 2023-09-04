@@ -56,7 +56,7 @@ export class GamepadsStore extends Emittery<{
         }
     }
 
-    public connectedGamepadIndexes = GamepadsStore.getConnectedGamepadIndexes()
+    public connectedGamepads = GamepadsStore.getConnectedGamepads()
 
     constructor() {
         super()
@@ -65,10 +65,10 @@ export class GamepadsStore extends Emittery<{
         window.addEventListener('gamepaddisconnected', this.gamepadEvent)
     }
 
-    // dispose() {
-    //     window.removeEventListener('gamepadconnected', this.gamepadEvent)
-    //     window.removeEventListener('gamepaddisconnected', this.gamepadEvent)
-    // }
+    dispose() {
+        window.removeEventListener('gamepadconnected', this.gamepadEvent)
+        window.removeEventListener('gamepaddisconnected', this.gamepadEvent)
+    }
 
     gamepadEvent = ({ gamepad, type, ...rest }: GamepadEvent) => {
         const connectedGamepadsLength = this.connectedGamepads.length
