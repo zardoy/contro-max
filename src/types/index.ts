@@ -123,6 +123,7 @@ export type ControEvents<T extends InputCommandsSchema, K extends InputGroupedCo
     triggerGrouped: GroupCommandEventArgument<K>
     release: CommandEventArgument<T>
     releaseGrouped: GroupCommandEventArgument<K>
+    stickMovement: { stick: 'left' | 'right'; vector: MovementVector2d } /*  & SourceType */
     movementUpdate: { vector: M extends '3d' ? MovementVector3d : MovementVector2d } & SourceType
     // works on canvasElem or after registerCanvasElem
     /** usually to switch slots */

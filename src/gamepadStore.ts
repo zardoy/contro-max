@@ -37,7 +37,7 @@ export class GamepadsStore extends Emittery<{
         return !!navigator.getGamepads()[whichGamepad]?.buttons[buttonNumber]!.pressed
     }
 
-    static queryStick(stick: keyof typeof gamepadSticks | GamepadStick, gamepad: Gamepad): { x: number; y: number } {
+    static queryStick(stick: keyof typeof gamepadSticks | GamepadStick, gamepad: Gamepad): { x: number; z: number } {
         // const gamepadConnectedIndex =
         //     which === 'first'
         //         ? 0
@@ -52,7 +52,7 @@ export class GamepadsStore extends Emittery<{
 
         return {
             x: gamepad.axes[resolvedStick.xAxis]!,
-            y: gamepad.axes[resolvedStick.yAxis]!,
+            z: gamepad.axes[resolvedStick.yAxis]!,
         }
     }
 

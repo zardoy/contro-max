@@ -302,10 +302,22 @@ export class ControMax<
                     )
                     if (!currentMovementVector.gamepads[gamepad.index]) currentMovementVector.gamepads[gamepad.index] = getInitialMovementVector()
                     const gamepadVector = currentMovementVector.gamepads[gamepad.index]!
-                    if (gamepadVector.x === newMovement.x && gamepadVector.y === newMovement.y) continue
+                    if (gamepadVector.x === newMovement.x && gamepadVector.y === newMovement.z) continue
                     gamepadVector.x = newMovement.x
-                    gamepadVector.y = newMovement.y
+                    gamepadVector.z = newMovement.z
                     updateMovementVector({ gamepadIndex: gamepad.index })
+                }
+                // todo emit all?
+                const gamepad = gamepads[0]
+                if (gamepad) {
+                    for (const side of ['left', 'right'] as const) {
+                        const rightStick = GamepadsStore.queryStick(
+                            side,
+                            GamepadsStore.getConnectedGamepads().find(({ index }) => index === gamepad.index)!,
+                        )
+
+                        this.emit('stickMovement', { stick: side, vector: rightStick })
+                    }
                 }
 
                 prevPressedButtons = newPressedButtons
