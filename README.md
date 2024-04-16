@@ -1,6 +1,4 @@
-# Contro Max &middot; [![npm version][npm-version-badge]][npm-link] &middot; [![coverage][coverage-badge]][coverage-link]
-
-![development status](https://img.shields.io/badge/status-in%20development-orange.svg)
+# Contro Max 🎮 ⌨️ 🚀
 
 > The package is ESM
 
@@ -12,12 +10,12 @@
 - [DX] Great typings support!
 - And more...
 
+[MCRAFT.FUN](https://mcraft.fun) is [using](https://github.com/zardoy/prismarine-web-client/blob/85c0eb8c5b74359c39903f8a4bb0b221fb0756fd/src/controls.ts#L155) this module!
+
 ## Testing Input
 
-<!-- TODO its obsolete, remove it -->
 - Keyboard: <https://keycode.info> – you need `event.code`
 - Gamepad: <https://gamepad-tester.com>
-<!-- - These plus mobile (touch): TODO PLACE LIVE DEMO -->
 
 Contro Max is a **framework** rather than library. The main goal is to give easiest way for handling all possible input types in web.
 
@@ -29,9 +27,9 @@ Contro Max is a **framework** rather than library. The main goal is to give easi
 <!-- - (optional) Control PS4 controller lighthouse -->
 - (soon) Bundled UI for configuring Input
 - Handles annoying edge cases where key was unpressed while alt+tabing, but...
-- React hooks
+<!-- - React hooks -->
 
-todo: place a live demo here
+<!-- todo: place a live demo here -->
 
 ## Usage
 
@@ -152,5 +150,3 @@ But if you're under Windows and OS sees gamepad as gamepad (not keyboard) or can
 - <https://www.npmjs.com/package/keyboardist>
 - [Mousetrap](npmjs.com/mousetrap) - not that good
 - [cheet.js](npmjs.com/cheet.js) - dead
-
-[npm-version-badge]:

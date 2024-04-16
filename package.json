@@ -1,7 +1,7 @@
 {
     "name": "contro-max",
     "version": "0.0.0-dev",
-    "description": "Game controls done even better!",
+    "description": "Game controls done in the best possible way!",
     "main": "build/index.js",
     "types": "build/index.d.ts",
     "module": "build/index.js",
@@ -9,10 +9,17 @@
         "build"
     ],
     "scripts": {
+        "watch": "tsc --watch",
+        "build": "tsc",
         "test": "pnpm test:browser && pnpm test:ui",
         "test:browser": "node test/run.mjs",
         "test:browser:watch": "node test/run.mjs watch",
         "lint": "eslint src/**"
+    },
+    "release": {
+        "initialVersion": {
+            "version": "0.1.2"
+        }
     },
     "keywords": [
         "game",
