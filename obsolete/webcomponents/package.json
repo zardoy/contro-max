@@ -1,0 +1,16 @@
+{
+    "scripts": {
+        "build": "stencil build --docs",
+        "start": "stencil build --dev --watch --serve",
+        "test:ui": "stencil test --spec --e2e",
+        "test:ui:watch": "stencil test --spec --e2e --watchAll",
+        "storybook": "start-storybook -p 6006"
+    },
+    "dependencies": {
+        "stencil-inline-svg": "^1.1.0",
+        "@stencil/core": "^2.11.0",
+        "@stencil/eslint-plugin": "^0.4.0",
+        "@stencil/sass": "^1.5.2",
+        "@storybook/web-components": "^6.4.9"
+    }
+}

@@ -9,15 +9,9 @@
         "build"
     ],
     "scripts": {
-        "build": "stencil build --docs",
-        "start": "stencil build --dev --watch --serve",
         "test": "pnpm test:browser && pnpm test:ui",
         "test:browser": "node test/run.mjs",
         "test:browser:watch": "node test/run.mjs watch",
-        "test:ui": "stencil test --spec --e2e",
-        "test:ui:watch": "stencil test --spec --e2e --watchAll",
-        "storybook": "start-storybook -p 6006",
-        "generate": "stencil generate",
         "lint": "eslint src/**"
     },
     "keywords": [
@@ -47,15 +41,6 @@
         "lodash-es": "^4.17.21"
     },
     "devDependencies": {
-        "@stencil/core": "^2.11.0",
-        "@stencil/eslint-plugin": "^0.4.0",
-        "@stencil/sass": "^1.5.2",
-        "@storybook/addon-actions": "^6.4.9",
-        "@storybook/addon-essentials": "^6.4.9",
-        "@storybook/addon-interactions": "^6.4.9",
-        "@storybook/addon-links": "^6.4.9",
-        "@storybook/react": "^6.4.9",
-        "@storybook/web-components": "^6.4.9",
         "@types/chai": "^4.3.0",
         "@types/lodash-es": "^4.17.5",
         "@types/mocha": "^9.0.0",
@@ -73,7 +58,6 @@
         "mocha-chrome": "^2.2.0",
         "puppeteer": "^12.0.1",
         "rollup": "^2.60.2",
-        "stencil-inline-svg": "^1.1.0",
         "tailwindcss": "^2.2.19",
         "type-fest": "^2.8.0",
         "typescript": "^5.0.0",
