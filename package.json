@@ -11,15 +11,11 @@
     "scripts": {
         "watch": "tsc --watch",
         "build": "tsc",
+        "test": "echo TODO",
         "test-todo": "pnpm test:browser && pnpm test:ui",
         "test:browser": "node test/run.mjs",
         "test:browser:watch": "node test/run.mjs watch",
         "lint": "eslint src/**"
-    },
-    "release": {
-        "initialVersion": {
-            "version": "0.1.2"
-        }
     },
     "keywords": [
         "game",
