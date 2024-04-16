@@ -1,4 +1,4 @@
-import { mapValues } from 'lodash-es'
+import { mapValues, merge } from 'lodash-es'
 import Emittery from 'emittery'
 import { Except } from 'type-fest'
 import { AllKeyCodes } from './types/keyCodes'
@@ -162,9 +162,13 @@ export class ControMax<
             }
 
             // lodash-marker
+            const resolvedSchema = this.userConfig
             for (const [sectionName, section] of Object.entries(this.inputSchema.commands))
                 for (const [name, command] of Object.entries(section)) {
-                    const { keys, disabled, gamepadButtons, preventDefault } = command
+                    let { keys, disabled, gamepadButtons, preventDefault } = command
+                    const userOverride = resolvedSchema?.[sectionName]?.[name]
+                    if (userOverride?.keys) keys = userOverride.keys as AllKeyCodes[]
+                    if (userOverride?.gamepad) gamepadButtons = userOverride.gamepad as GamepadButtonName[]
                     if ('code' in codeOrButton) {
                         if (!keys.includes(codeOrButton.code)) continue
                     } else if (!gamepadButtons.includes(codeOrButton.button)) {
@@ -176,6 +180,7 @@ export class ControMax<
                     void this.emit(buttonPressed ? 'trigger' : 'release', { command: `${sectionName}.${name}` as any, schema: command })
                 }
 
+            // todo do the same here
             for (const [sectionName, section] of Object.entries((this.inputSchema.groupedCommands as K) ?? {}))
                 for (const [name, groupedCommand] of Object.entries(section)) {
                     const [keyboard, gamepadButtons, options = {}] = groupedCommand
