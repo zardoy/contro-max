@@ -130,6 +130,7 @@ export type ControEvents<T extends InputCommandsSchema, K extends InputGroupedCo
     mouseWheel: { direction: -1 | 1 }
     // updateLook: MovementVector2d
 
+    pressedKeyOrButtonChanged: ({ code: AllKeyCodes } | { gamepadIndex: number; button: GamepadButtonName }) & { state: boolean }
     userConfigResolve: undefined
 }
 

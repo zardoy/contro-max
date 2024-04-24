@@ -46,8 +46,8 @@ export class ControMax<
 
     /** Raw set of all pressed key at the moment */
     pressedKeys: ReadonlySet<AllKeyCodes>
-    /** Completely disable emitting all events. */
-    disabled = false
+    /** Disable input handling. */
+    enabled = false
 
     userConfig: UserOverridesConfig | undefined
     pressedKeyOrButtonChanged: (
@@ -102,7 +102,6 @@ export class ControMax<
         if (this.options.storeProvider) {
             const promiseOrConfig = this.options.storeProvider.load()
             if (typeof promiseOrConfig.then === 'function') {
-                this.disabled = true
                 void promiseOrConfig.then(config => {
                     this.userConfig = config
                     void this.emit('userConfigResolve')
@@ -153,6 +152,8 @@ export class ControMax<
 
         // eslint-disable-next-line complexity
         this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => {} } = {}) => {
+            this.emit('pressedKeyOrButtonChanged', { ...codeOrButton, state: buttonPressed })
+
             // ;(keydownEvent ? pressedKeys.add : pressedKeys.delete)(code)
             // ignore subsequent keypresses. also possible via event.repeat == true
             if ('code' in codeOrButton) {
@@ -161,6 +162,7 @@ export class ControMax<
                 this.pressedKeys[buttonPressed ? 'add' : 'delete'](codeOrButton.code)
             }
 
+            if (!this.enabled) return
             // lodash-marker
             const resolvedSchema = this.userConfig
             for (const [sectionName, section] of Object.entries(this.inputSchema.commands))
