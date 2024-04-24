@@ -47,7 +47,7 @@ export class ControMax<
     /** Raw set of all pressed key at the moment */
     pressedKeys: ReadonlySet<AllKeyCodes>
     /** Disable input handling. */
-    enabled = false
+    enabled = true
 
     userConfig: UserOverridesConfig | undefined
     pressedKeyOrButtonChanged: (
