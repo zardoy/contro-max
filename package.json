@@ -41,8 +41,9 @@
     "author": "Vitaly Turovsky <vital2580@icloud.com>",
     "license": "MIT",
     "dependencies": {
-        "emittery": "^0.10.0",
-        "lodash-es": "^4.17.21"
+        "events": "^3.3.0",
+        "lodash-es": "^4.17.21",
+        "typed-emitter": "^2.1.0"
     },
     "devDependencies": {
         "@types/chai": "^4.3.0",

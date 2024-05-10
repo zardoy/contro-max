@@ -119,19 +119,24 @@ export type SourceType = {
     gamepadIndex?: number
 }
 export type ControEvents<T extends InputCommandsSchema, K extends InputGroupedCommandsSchema, M extends '2d' | '3d'> = {
-    trigger: CommandEventArgument<T>
-    triggerGrouped: GroupCommandEventArgument<K>
-    release: CommandEventArgument<T>
-    releaseGrouped: GroupCommandEventArgument<K>
-    stickMovement: { stick: 'left' | 'right'; vector: MovementVector2d } /*  & SourceType */
-    movementUpdate: { vector: M extends '3d' ? MovementVector3d : MovementVector2d } & SourceType
+    trigger: (arg0: CommandEventArgument<T>) => void
+    triggerGrouped: (arg0: GroupCommandEventArgument<K>) => void
+    release: (arg0: CommandEventArgument<T>) => void
+    releaseGrouped: (arg0: GroupCommandEventArgument<K>) => void
+    stickMovement: (arg0: { stick: 'left' | 'right'; vector: MovementVector2d } /*  & SourceType */) => void
+    movementUpdate: (
+        arg0: {
+            vector: M extends '3d' ? MovementVector3d : MovementVector2d
+            soleVector: M extends '3d' ? MovementVector3d : MovementVector2d
+        } & SourceType,
+    ) => void
     // works on canvasElem or after registerCanvasElem
     /** usually to switch slots */
-    mouseWheel: { direction: -1 | 1 }
+    mouseWheel: (arg0: { direction: -1 | 1 }) => void
     // updateLook: MovementVector2d
 
-    pressedKeyOrButtonChanged: ({ code: AllKeyCodes } | { gamepadIndex: number; button: GamepadButtonName }) & { state: boolean }
-    userConfigResolve: undefined
+    pressedKeyOrButtonChanged: (arg0: ({ code: AllKeyCodes } | { gamepadIndex: number; button: GamepadButtonName }) & { state: boolean }) => void
+    userConfigResolve: () => void
 }
 
 // OPTIONS

@@ -1,5 +1,4 @@
 import { mapValues, merge } from 'lodash-es'
-import Emittery from 'emittery'
 import { Except } from 'type-fest'
 import { AllKeyCodes } from './types/keyCodes'
 import {
@@ -19,6 +18,7 @@ import { bindEventListeners } from './eventUtils'
 import { GamepadsStore } from './gamepadStore'
 import { GamepadButtonName, getButtonLabel } from './gamepad'
 import { UserOverridesConfig } from './types/store'
+import { TypedEventEmitter } from './typedEventEmitter'
 
 const mapKeyboardCodes = {
     // firefox
@@ -39,7 +39,7 @@ export class ControMax<
     } & InputSchemaArg<T, K> /*  &
         // eslint-disable-next-line @typescript-eslint/ban-types
         (M extends '3d' ? { upCommand: AllSchemaCommands<T>; downCommand?: AllSchemaCommands<T> } : {}) */,
-> extends Emittery<ControEvents<D['commands'], K, M>> {
+> extends TypedEventEmitter<ControEvents<D['commands'], K, M>> {
     /** type only @deprecated */
     _commandsRaw: D['commands'] = undefined as any
     inputSchema: Except<D, 'commands'> & { commands: { [G in keyof T]: { [C in keyof T[G]]: SchemaCommand } } }
@@ -142,8 +142,11 @@ export class ControMax<
                     ? currentMovementVector.keyboard
                     : currentMovementVector[type.gamepadIndex]
 
+            const solelyMovementVector = 'keyboard' in type ? currentMovementVector.keyboard : currentMovementVector.gamepads[type.gamepadIndex]!
+
             void this.emit('movementUpdate', {
                 vector: inputSchema.movementVector === '2d' ? { ...movementVectorToEmit, y: undefined } : (movementVectorToEmit as any),
+                soleVector: solelyMovementVector,
                 gamepadIndex: 'keyboard' in type ? undefined : type.gamepadIndex,
             })
         }

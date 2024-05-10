@@ -1,5 +1,5 @@
-import Emittery from 'emittery'
 import { findButtonNumber, GamepadButtonName } from './gamepad'
+import { TypedEventEmitter } from './typedEventEmitter'
 
 export interface GamepadStick {
     label: string
@@ -17,11 +17,11 @@ export const gamepadSticks: { [id in 'left' | 'right']: GamepadStick } = {
 
 type WhichGamepad = 'all' | 0 | 1 | 2 | 3
 
-export class GamepadsStore extends Emittery<{
-    firstConnected: Gamepad
-    lastDisconnected: undefined
+export class GamepadsStore extends TypedEventEmitter<{
+    firstConnected: (arg0: Gamepad) => void
+    lastDisconnected: () => void
     /** Emits only after queried */
-    nowPrefersGamepad: undefined
+    nowPrefersGamepad: () => void
 }> {
     // static getConnectedGamepadIndexes() {
     //     return new Set((navigator.getGamepads().filter(Boolean) as Gamepad[]).map(gamepad => gamepad.index))
