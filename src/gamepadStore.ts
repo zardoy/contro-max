@@ -56,7 +56,7 @@ export class GamepadsStore extends Emittery<{
         }
     }
 
-    public connectedGamepads = GamepadsStore.getConnectedGamepads()
+    private connectedGamepads = GamepadsStore.getConnectedGamepads()
 
     constructor() {
         super()

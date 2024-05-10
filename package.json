@@ -11,6 +11,7 @@
     "scripts": {
         "watch": "tsc --watch",
         "build": "tsc",
+        "tester": "vite --config tester/vite.config.ts",
         "test": "echo TODO",
         "test-todo": "pnpm test:browser && pnpm test:ui",
         "test:browser": "node test/run.mjs",
@@ -63,7 +64,7 @@
         "rollup": "^2.60.2",
         "tailwindcss": "^2.2.19",
         "type-fest": "^2.8.0",
-        "typescript": "^5.0.0",
+        "typescript": "^5.4.5",
         "vite": "^2.6.14"
     },
     "config": {

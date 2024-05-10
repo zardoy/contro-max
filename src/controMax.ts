@@ -273,7 +273,7 @@ export class ControMax<
             let prevPressedButtons: ButtonsState = []
             pollingInterval = setInterval(() => {
                 if (options?.captureEvents && !options.captureEvents()) return
-                const allConnectedGamepads = [...gamepadsStore.connectedGamepads]
+                const allConnectedGamepads = [...GamepadsStore.getConnectedGamepads()]
                 // TODO handle disablement in other way
                 // Polling interval would stop if there is no gamepads
                 const gamepads: Gamepad[] =
