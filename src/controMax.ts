@@ -81,7 +81,7 @@ export class ControMax<
                 mapValues(group, (inputCommand): SchemaCommand => {
                     const resolvedCommand: SchemaCommand = {
                         keys: [],
-                        gamepadButtons: [],
+                        gamepad: [],
                     }
                     if (inputCommand === null) return resolvedCommand
                     const [...args] = inputCommand
@@ -91,7 +91,7 @@ export class ControMax<
                     if (typeof args[0] === 'string') resolvedCommand.keys = [args[0]]
                     if (Array.isArray(args[0]) && typeof args[0][0] === 'string') resolvedCommand.keys = args[0]
 
-                    if (typeof args[1] === 'string') resolvedCommand.gamepadButtons = [args[1]]
+                    if (typeof args[1] === 'string') resolvedCommand.gamepad = [args[1]]
 
                     return resolvedCommand
                 }),
@@ -170,13 +170,13 @@ export class ControMax<
             const resolvedSchema = this.userConfig
             for (const [sectionName, section] of Object.entries(this.inputSchema.commands))
                 for (const [name, command] of Object.entries(section)) {
-                    let { keys, disabled, gamepadButtons, preventDefault } = command
+                    let { keys, disabled, gamepad, preventDefault } = command
                     const userOverride = resolvedSchema?.[sectionName]?.[name]
                     if (userOverride?.keys) keys = userOverride.keys as AllKeyCodes[]
-                    if (userOverride?.gamepad) gamepadButtons = userOverride.gamepad as GamepadButtonName[]
+                    if (userOverride?.gamepad) gamepad = userOverride.gamepad as GamepadButtonName[]
                     if ('code' in codeOrButton) {
                         if (!keys.includes(codeOrButton.code)) continue
-                    } else if (!gamepadButtons.includes(codeOrButton.button)) {
+                    } else if (!gamepad.includes(codeOrButton.button)) {
                         continue
                     }
 
@@ -188,7 +188,7 @@ export class ControMax<
             // todo do the same here
             for (const [sectionName, section] of Object.entries((this.inputSchema.groupedCommands as K) ?? {}))
                 for (const [name, groupedCommand] of Object.entries(section)) {
-                    const [keyboard, gamepadButtons, options = {}] = groupedCommand
+                    const [keyboard, gamepad, options = {}] = groupedCommand
                     const emitData: Partial<GroupCommandEventArgument<any>> = {
                         command: `${sectionName}.${name}`,
                         schema: groupedCommand,
@@ -203,14 +203,14 @@ export class ControMax<
                             key: resolvedKeys[keyIndex]!,
                         })
                     } else {
-                        const buttonIndex = gamepadButtons.indexOf(codeOrButton.button)
+                        const buttonIndex = gamepad.indexOf(codeOrButton.button)
                         if (buttonIndex === -1) continue
 
                         Object.assign(emitData, {
                             type: 'gamepad',
                             index: buttonIndex,
                             gamepadIndex: codeOrButton.gamepadIndex,
-                            key: gamepadButtons[buttonIndex]!,
+                            key: gamepad[buttonIndex]!,
                         })
                     }
 

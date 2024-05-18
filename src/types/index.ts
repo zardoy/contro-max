@@ -21,7 +21,7 @@ type BasicInputType = 'keyboard' | 'gamepad'
 /** resolved command from schema */
 export type SchemaCommand = InputCommandOptions & {
     keys: AllKeyCodes[]
-    gamepadButtons: GamepadButtonName[]
+    gamepad: GamepadButtonName[]
     // trigger(): void
     /** once triggered (even by key) subsequent calls wont' take any effect */
     // triggerHold(): void
