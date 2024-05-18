@@ -250,10 +250,18 @@ export class ControMax<
                 this.pressedKeyOrButtonChanged({ code: code as AllKeyCodes }, keydownEvent, { preventDefault: () => e.preventDefault() })
         }
 
+        const mouseEvent = (e: MouseEvent) => {
+            const { button } = e
+            const mousedownEvent = e.type === 'mousedown'
+            this.pressedKeyOrButtonChanged({ code: 'Mouse' + button as AllKeyCodes }, mousedownEvent, { preventDefault: () => e.preventDefault() })
+        }
+
         // BIND EVENTS
         bindEventListeners(target, {
             keydown: keyboardEvent,
             keyup: keyboardEvent,
+            mousedown: mouseEvent,
+            mouseup: mouseEvent,
         })
 
         const visibilitychangeListener = () => {
