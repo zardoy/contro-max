@@ -4,7 +4,7 @@
 
 ## Why Fork?
 
-- Not that complete
+- Was not that complete
 - Contro used `e.key` instead of `e.code` so your app/game [won't work](https://javascript.info/keyboard-events#event-code-and-event-key) with different layouts
 - Fixed bugs with keyboard and `alt+tab`
 - [DX] Great typings support!
@@ -25,7 +25,6 @@ Contro Max is a **framework** rather than library. The main goal is to give easi
 
 <!-- - Great Mobile support -->
 <!-- - (optional) Control PS4 controller lighthouse -->
-- (soon) Bundled UI for configuring Input
 - Handles annoying edge cases where key was unpressed while alt+tabing, but...
 <!-- - React hooks -->
 
@@ -43,7 +42,7 @@ First of all, you need to create controls schema for your app/game:
 ```ts
 export const controls = createControlsSchema({
     core: {
-        openInventory: ["KeyE", "LB"]
+        openInventory: ["KeyE", "LB"] // Can also use mouse input like Mouse1 insdead of KeyE
     }
 });
 ```
