@@ -139,8 +139,8 @@ export class ControMax<
                 emitMovement === 'all'
                     ? currentMovementVector.all
                     : 'keyboard' in type
-                    ? currentMovementVector.keyboard
-                    : currentMovementVector[type.gamepadIndex]
+                        ? currentMovementVector.keyboard
+                        : currentMovementVector[type.gamepadIndex]
 
             const solelyMovementVector = 'keyboard' in type ? currentMovementVector.keyboard : currentMovementVector.gamepads[type.gamepadIndex]!
 
@@ -154,7 +154,7 @@ export class ControMax<
         this.pressedKeys = new Set<AllKeyCodes>()
 
         // eslint-disable-next-line complexity
-        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => {} } = {}) => {
+        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => { } } = {}) => {
             this.emit('pressedKeyOrButtonChanged', { ...codeOrButton, state: buttonPressed })
 
             // ;(keydownEvent ? pressedKeys.add : pressedKeys.delete)(code)
@@ -168,14 +168,23 @@ export class ControMax<
             if (!this.enabled) return
             // lodash-marker
             const resolvedSchema = this.userConfig
-            for (const [sectionName, section] of Object.entries(this.inputSchema.commands))
+            for (const [sectionName, section] of Object.entries(this.inputSchema.commands)) {
                 for (const [name, command] of Object.entries(section)) {
                     let { keys, disabled, gamepad, preventDefault } = command
                     const userOverride = resolvedSchema?.[sectionName]?.[name]
                     if (userOverride?.keys) keys = userOverride.keys as AllKeyCodes[]
                     if (userOverride?.gamepad) gamepad = userOverride.gamepad as GamepadButtonName[]
                     if ('code' in codeOrButton) {
-                        if (!keys.includes(codeOrButton.code)) continue
+                        const keysWithCode = keys.filter(key => key.includes(codeOrButton.code))
+                        if (keysWithCode.length === 0) continue
+                        let shouldSkip = false
+                        for (const key of keysWithCode) {
+                            const codeWithModifier = key.includes('+') ? key.split('+') : null
+                            if (!codeWithModifier) continue
+                            shouldSkip = !this.pressedKeys.has(codeWithModifier[0] as AllKeyCodes)
+                                || codeWithModifier[1] !== codeOrButton.code
+                        }
+                        if (shouldSkip) continue
                     } else if (!gamepad.includes(codeOrButton.button)) {
                         continue
                     }
@@ -184,6 +193,7 @@ export class ControMax<
                     if ((disabled ?? defaultControlOptions?.disabled) && buttonPressed) continue
                     void this.emit(buttonPressed ? 'trigger' : 'release', { command: `${sectionName}.${name}` as any, schema: command })
                 }
+            }
 
             // todo do the same here
             for (const [sectionName, section] of Object.entries((this.inputSchema.groupedCommands as K) ?? {}))
@@ -291,10 +301,10 @@ export class ControMax<
                     listenGamepadsStrategy === 'only-first-gamepad'
                         ? [allConnectedGamepads[0]!]
                         : listenGamepadsStrategy === 'only-last-gamepad'
-                        ? [allConnectedGamepads.at(-1)!]
-                        : listenGamepadsStrategy === 'all-gamepads'
-                        ? allConnectedGamepads
-                        : []
+                            ? [allConnectedGamepads.at(-1)!]
+                            : listenGamepadsStrategy === 'all-gamepads'
+                                ? allConnectedGamepads
+                                : []
                 const newPressedButtons: ButtonsState = Object.fromEntries(
                     gamepads.map(({ index: gamepadIndex, buttons }) => [
                         gamepadIndex,
