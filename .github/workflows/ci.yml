@@ -1,0 +1,16 @@
+name: NPM Release
+on:
+  pull_request:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+          run_install: |
+            args: [--no-frozen-lockfile, --strict-peer-dependencies]
+      - run: pnpm build
