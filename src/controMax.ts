@@ -1,6 +1,6 @@
 import { mapValues, merge } from 'lodash-es'
 import { Except } from 'type-fest'
-import { AllKeyCodes } from './types/keyCodes'
+import { AllKeyCodes, ModifierOnlyKeys } from './types/keyCodes'
 import {
     AllSchemaCommands,
     ControEvents,
@@ -175,16 +175,34 @@ export class ControMax<
                     if (userOverride?.keys) keys = userOverride.keys as AllKeyCodes[]
                     if (userOverride?.gamepad) gamepad = userOverride.gamepad as GamepadButtonName[]
                     if ('code' in codeOrButton) {
-                        const keysWithCode = keys.filter(key => key.includes(codeOrButton.code))
-                        if (keysWithCode.length === 0) continue
-                        let shouldSkip = false
-                        for (const key of keysWithCode) {
-                            const codeWithModifier = key.includes('+') ? key.split('+') : null
-                            if (!codeWithModifier) continue
-                            shouldSkip = !this.pressedKeys.has(codeWithModifier[0] as AllKeyCodes)
-                                || codeWithModifier[1] !== codeOrButton.code
+                        const hasSimpleBind = keys.includes(codeOrButton.code)
+                        const hasModifierBind = keys.some(key => key.includes(`+${codeOrButton.code}`))
+
+                        if (!hasSimpleBind && !hasModifierBind) continue
+                        // if there is a simple bind then check that it is not overlaped with modifier bind
+                        if (hasSimpleBind) {
+                            const isOverlapped = Object.values(resolvedSchema ?? {}).some(sec =>
+                                Object.values(sec).some(com =>
+                                    com.keys?.some(k =>
+                                        k.includes(`+${codeOrButton.code}`) &&
+                                            this.pressedKeys.has(k.split('+')[0] as ModifierOnlyKeys)
+                                    )
+                                )
+                            )
+                            if (isOverlapped) continue
                         }
-                        if (shouldSkip) continue
+
+                        // if there is a bind with modifier then check that modifier is pressed
+                        if (hasModifierBind) {
+                            const codesWithModifier = keys.filter(key =>
+                                /^(Shift|Alt|Control|Meta)\+/.test(key) && key.endsWith(`+${codeOrButton.code}`)
+                            )
+                            const shouldSkip = !codesWithModifier.some(codeWithModifier => {
+                                const [modifier] = codeWithModifier.split('+')
+                                return this.pressedKeys.has(modifier as AllKeyCodes)
+                            })
+                            if (shouldSkip) continue
+                        }
                     } else if (!gamepad.includes(codeOrButton.button)) {
                         continue
                     }
