@@ -1,6 +1,6 @@
 import { mapValues, merge } from 'lodash-es'
 import { Except } from 'type-fest'
-import { AllKeyCodes } from './types/keyCodes'
+import { AllKeyCodes, ModifierOnlyKeys } from './types/keyCodes'
 import {
     AllSchemaCommands,
     ControEvents,
@@ -139,8 +139,8 @@ export class ControMax<
                 emitMovement === 'all'
                     ? currentMovementVector.all
                     : 'keyboard' in type
-                    ? currentMovementVector.keyboard
-                    : currentMovementVector[type.gamepadIndex]
+                        ? currentMovementVector.keyboard
+                        : currentMovementVector[type.gamepadIndex]
 
             const solelyMovementVector = 'keyboard' in type ? currentMovementVector.keyboard : currentMovementVector.gamepads[type.gamepadIndex]!
 
@@ -154,7 +154,7 @@ export class ControMax<
         this.pressedKeys = new Set<AllKeyCodes>()
 
         // eslint-disable-next-line complexity
-        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => {} } = {}) => {
+        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => { } } = {}) => {
             this.emit('pressedKeyOrButtonChanged', { ...codeOrButton, state: buttonPressed })
 
             // ;(keydownEvent ? pressedKeys.add : pressedKeys.delete)(code)
@@ -168,14 +168,41 @@ export class ControMax<
             if (!this.enabled) return
             // lodash-marker
             const resolvedSchema = this.userConfig
-            for (const [sectionName, section] of Object.entries(this.inputSchema.commands))
+            for (const [sectionName, section] of Object.entries(this.inputSchema.commands)) {
                 for (const [name, command] of Object.entries(section)) {
                     let { keys, disabled, gamepad, preventDefault } = command
                     const userOverride = resolvedSchema?.[sectionName]?.[name]
                     if (userOverride?.keys) keys = userOverride.keys as AllKeyCodes[]
                     if (userOverride?.gamepad) gamepad = userOverride.gamepad as GamepadButtonName[]
                     if ('code' in codeOrButton) {
-                        if (!keys.includes(codeOrButton.code)) continue
+                        const hasSimpleBind = keys.includes(codeOrButton.code)
+                        const hasModifierBind = keys.some(key => key.includes(`+${codeOrButton.code}`))
+
+                        if (!hasSimpleBind && !hasModifierBind) continue
+                        // if there is a simple bind then check that it is not overlaped with modifier bind
+                        if (hasSimpleBind) {
+                            const isOverlapped = Object.values(resolvedSchema ?? {}).some(sec =>
+                                Object.values(sec).some(com =>
+                                    com.keys?.some(k =>
+                                        k.includes(`+${codeOrButton.code}`) &&
+                                            this.pressedKeys.has(k.split('+')[0] as ModifierOnlyKeys)
+                                    )
+                                )
+                            )
+                            if (isOverlapped) continue
+                        }
+
+                        // if there is a bind with modifier then check that modifier is pressed
+                        if (hasModifierBind) {
+                            const codesWithModifier = keys.filter(key =>
+                                /^(Shift|Alt|Control|Meta)\+/.test(key) && key.endsWith(`+${codeOrButton.code}`)
+                            )
+                            const shouldSkip = !codesWithModifier.some(codeWithModifier => {
+                                const [modifier] = codeWithModifier.split('+')
+                                return this.pressedKeys.has(modifier as AllKeyCodes)
+                            })
+                            if (shouldSkip) continue
+                        }
                     } else if (!gamepad.includes(codeOrButton.button)) {
                         continue
                     }
@@ -184,6 +211,7 @@ export class ControMax<
                     if ((disabled ?? defaultControlOptions?.disabled) && buttonPressed) continue
                     void this.emit(buttonPressed ? 'trigger' : 'release', { command: `${sectionName}.${name}` as any, schema: command })
                 }
+            }
 
             // todo do the same here
             for (const [sectionName, section] of Object.entries((this.inputSchema.groupedCommands as K) ?? {}))
@@ -291,10 +319,10 @@ export class ControMax<
                     listenGamepadsStrategy === 'only-first-gamepad'
                         ? [allConnectedGamepads[0]!]
                         : listenGamepadsStrategy === 'only-last-gamepad'
-                        ? [allConnectedGamepads.at(-1)!]
-                        : listenGamepadsStrategy === 'all-gamepads'
-                        ? allConnectedGamepads
-                        : []
+                            ? [allConnectedGamepads.at(-1)!]
+                            : listenGamepadsStrategy === 'all-gamepads'
+                                ? allConnectedGamepads
+                                : []
                 const newPressedButtons: ButtonsState = Object.fromEntries(
                     gamepads.map(({ index: gamepadIndex, buttons }) => [
                         gamepadIndex,

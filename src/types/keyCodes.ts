@@ -79,7 +79,6 @@ type LetterKey = `Key${Capitalize<
 type MouseSideKeys = `Mouse${0 | 1 | 2 | 3 | 4}`
 
 type AllKeyCodesWithoutModifiers = `${DigitKeys}` | LetterKey | `F${Fnumbers}` | NumpadKeys | OtherKeys | MouseSideKeys
-export type AllKeyCodes = `${ModifierOnlyKeys}` | AllKeyCodesWithoutModifiers
+export type AllKeyCodes = `${ModifierOnlyKeys}` | AllKeyCodesWithoutModifiers | `${ModifierOnlyKeys}+${AllKeyCodesWithoutModifiers}`
 
 export type AllKeyCodesWithModifiers = `${AllKeyCodes}` | `${ModifierOnlyKeys}+${AllKeyCodesWithoutModifiers}`
-// | `${ModifierOnlyKeys}+${ModifierOnlyKeys}+${AllKeyCodesWithoutModifiers}`
