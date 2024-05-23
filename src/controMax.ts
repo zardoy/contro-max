@@ -139,8 +139,8 @@ export class ControMax<
                 emitMovement === 'all'
                     ? currentMovementVector.all
                     : 'keyboard' in type
-                    ? currentMovementVector.keyboard
-                    : currentMovementVector[type.gamepadIndex]
+                        ? currentMovementVector.keyboard
+                        : currentMovementVector[type.gamepadIndex]
 
             const solelyMovementVector = 'keyboard' in type ? currentMovementVector.keyboard : currentMovementVector.gamepads[type.gamepadIndex]!
 
@@ -154,7 +154,7 @@ export class ControMax<
         this.pressedKeys = new Set<AllKeyCodes>()
 
         // eslint-disable-next-line complexity
-        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => {} } = {}) => {
+        this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => { } } = {}) => {
             this.emit('pressedKeyOrButtonChanged', { ...codeOrButton, state: buttonPressed })
 
             // ;(keydownEvent ? pressedKeys.add : pressedKeys.delete)(code)
@@ -183,15 +183,20 @@ export class ControMax<
                         if (hasSimpleBind) {
                             const isOverlapped = Object.values(resolvedSchema ?? {}).some(sec =>
                                 Object.values(sec).some(com =>
-                                    com.keys?.some(k => k.includes(`+${codeOrButton.code}`) && this.pressedKeys.has(k.split('+')[0] as ModifierOnlyKeys)),
-                                ),
+                                    com.keys?.some(k =>
+                                        k.includes(`+${codeOrButton.code}`) &&
+                                            this.pressedKeys.has(k.split('+')[0] as ModifierOnlyKeys)
+                                    )
+                                )
                             )
                             if (isOverlapped) continue
                         }
 
                         // if there is a bind with modifier then check that modifier is pressed
                         if (hasModifierBind) {
-                            const codesWithModifier = keys.filter(key => /^(Shift|Alt|Control|Meta)\+/.test(key) && key.endsWith(`+${codeOrButton.code}`))
+                            const codesWithModifier = keys.filter(key =>
+                                /^(Shift|Alt|Control|Meta)\+/.test(key) && key.endsWith(`+${codeOrButton.code}`)
+                            )
                             const shouldSkip = !codesWithModifier.some(codeWithModifier => {
                                 const [modifier] = codeWithModifier.split('+')
                                 return this.pressedKeys.has(modifier as AllKeyCodes)
@@ -269,13 +274,14 @@ export class ControMax<
             // interesting thing. todo: cover with all possible tests
             const codeWithoutSide = /^(.+?)(Left|Right)$/.exec(code)?.[1]
             const codes = codeWithoutSide ? [code, codeWithoutSide] : [code]
-            for (const code of codes) this.pressedKeyOrButtonChanged({ code: code as AllKeyCodes }, keydownEvent, { preventDefault: () => e.preventDefault() })
+            for (const code of codes)
+                this.pressedKeyOrButtonChanged({ code: code as AllKeyCodes }, keydownEvent, { preventDefault: () => e.preventDefault() })
         }
 
         const mouseEvent = (e: MouseEvent) => {
             const { button } = e
             const mousedownEvent = e.type === 'mousedown'
-            this.pressedKeyOrButtonChanged({ code: ('Mouse' + button) as AllKeyCodes }, mousedownEvent, { preventDefault: () => e.preventDefault() })
+            this.pressedKeyOrButtonChanged({ code: 'Mouse' + button as AllKeyCodes }, mousedownEvent, { preventDefault: () => e.preventDefault() })
         }
 
         // BIND EVENTS
@@ -313,10 +319,10 @@ export class ControMax<
                     listenGamepadsStrategy === 'only-first-gamepad'
                         ? [allConnectedGamepads[0]!]
                         : listenGamepadsStrategy === 'only-last-gamepad'
-                        ? [allConnectedGamepads.at(-1)!]
-                        : listenGamepadsStrategy === 'all-gamepads'
-                        ? allConnectedGamepads
-                        : []
+                            ? [allConnectedGamepads.at(-1)!]
+                            : listenGamepadsStrategy === 'all-gamepads'
+                                ? allConnectedGamepads
+                                : []
                 const newPressedButtons: ButtonsState = Object.fromEntries(
                     gamepads.map(({ index: gamepadIndex, buttons }) => [
                         gamepadIndex,
@@ -331,11 +337,15 @@ export class ControMax<
                         let pressEvent = undefined as undefined | boolean
                         if (buttonState && !prevPressedButtons[gamepadIndex]?.[buttonIndex]) pressEvent = true
                         if (!buttonState && prevPressedButtons[gamepadIndex]?.[buttonIndex] === true) pressEvent = false
-                        if (pressEvent !== undefined) this.pressedKeyOrButtonChanged({ button: getButtonLabel(+buttonIndex)!, gamepadIndex }, pressEvent)
+                        if (pressEvent !== undefined)
+                            this.pressedKeyOrButtonChanged({ button: getButtonLabel(+buttonIndex)!, gamepadIndex }, pressEvent)
                     }
 
                 for (const gamepad of gamepads) {
-                    const newMovement = GamepadsStore.queryStick('left', GamepadsStore.getConnectedGamepads().find(({ index }) => index === gamepad.index)!)
+                    const newMovement = GamepadsStore.queryStick(
+                        'left',
+                        GamepadsStore.getConnectedGamepads().find(({ index }) => index === gamepad.index)!,
+                    )
                     if (!currentMovementVector.gamepads[gamepad.index]) currentMovementVector.gamepads[gamepad.index] = getInitialMovementVector()
                     const gamepadVector = currentMovementVector.gamepads[gamepad.index]!
                     if (gamepadVector.x === newMovement.x && gamepadVector.y === newMovement.z) continue
@@ -347,7 +357,10 @@ export class ControMax<
                 const gamepad = gamepads[0]
                 if (gamepad) {
                     for (const side of ['left', 'right'] as const) {
-                        const rightStick = GamepadsStore.queryStick(side, GamepadsStore.getConnectedGamepads().find(({ index }) => index === gamepad.index)!)
+                        const rightStick = GamepadsStore.queryStick(
+                            side,
+                            GamepadsStore.getConnectedGamepads().find(({ index }) => index === gamepad.index)!,
+                        )
 
                         this.emit('stickMovement', { stick: side, vector: rightStick })
                     }
@@ -374,7 +387,11 @@ export class ControMax<
         void this.emit('release', eventData)
     }
 
-    triggerGroupedCommand<K1 extends keyof K>(category: K1, command: keyof K[K1], indexOrKey: (K[K1] extends [Array<infer U>, ...any] ? U : string) | number) {
+    triggerGroupedCommand<K1 extends keyof K>(
+        category: K1,
+        command: keyof K[K1],
+        indexOrKey: (K[K1] extends [Array<infer U>, ...any] ? U : string) | number,
+    ) {
         if (!this.inputSchema.groupedCommands) throw new Error('No grouped commands defined')
         // TODO
         const schema = this.inputSchema.groupedCommands[category as any]![command as any]!
