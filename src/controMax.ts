@@ -160,7 +160,11 @@ export class ControMax<
             // ;(keydownEvent ? pressedKeys.add : pressedKeys.delete)(code)
             // ignore subsequent keypresses. also possible via event.repeat == true
             if ('code' in codeOrButton) {
-                if (buttonPressed && this.pressedKeys.has(codeOrButton.code)) return
+                if (buttonPressed && this.pressedKeys.has(codeOrButton.code)) {
+                    // prevent default
+                    if (defaultControlOptions?.preventDefault) doPreventDefault()
+                    return
+                }
                 if (!buttonPressed && !this.pressedKeys.has(codeOrButton.code)) return
                 this.pressedKeys[buttonPressed ? 'add' : 'delete'](codeOrButton.code)
             }
