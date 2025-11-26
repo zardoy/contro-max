@@ -56,6 +56,8 @@ export class ControMax<
         options?: { preventDefault?: (() => void) | undefined },
     ) => void
 
+    private handleMovementKeyInternal: ((movementIndex: number, pressed: boolean) => void) | undefined
+
     // invoke: {
     //     [K in keyof D['commands']]: {
     //         [X in keyof D['commands'][K]]: () => void
@@ -152,6 +154,15 @@ export class ControMax<
         }
 
         this.pressedKeys = new Set<AllKeyCodes>()
+
+        // Handle movement key by index (0=forward/up, 1=left, 2=backward/down, 3=right)
+        const handleMovementKey = (movementIndex: number, pressed: boolean) => {
+            if (movementIndex < 0 || movementIndex >= keysMovementConfig.length) return
+            const movementAction = keysMovementConfig[movementIndex]!
+            currentMovementVector.keyboard[movementAction[0]] += movementAction[1] * (pressed ? 1 : -1)
+            updateMovementVector({ keyboard: true })
+        }
+        this.handleMovementKeyInternal = handleMovementKey
 
         // eslint-disable-next-line complexity
         this.pressedKeyOrButtonChanged = (codeOrButton, buttonPressed, { preventDefault: doPreventDefault = () => { } } = {}) => {
@@ -251,16 +262,15 @@ export class ControMax<
                     void this.emit(buttonPressed ? 'triggerGrouped' : 'releaseGrouped', emitData as any)
                 }
 
+            // Handle movement keys
             if (inputSchema.movementKeymap && 'code' in codeOrButton) {
                 const movementKeys = getMovementKeysGroup(inputSchema.movementKeymap)
                 let keyIndex = movementKeys.indexOf(codeOrButton.code)
                 if (keyIndex !== -1) {
                     // lodash-marker
                     if (keyIndex >= keysMovementConfig.length) keyIndex -= keysMovementConfig.length
-                    const movementAction = keysMovementConfig[keyIndex]!
-                    currentMovementVector.keyboard[movementAction[0]] += movementAction[1] * (buttonPressed ? 1 : -1)
+                    handleMovementKey(keyIndex, buttonPressed)
                     if (defaultControlOptions?.preventDefault ?? true) doPreventDefault()
-                    updateMovementVector({ keyboard: true })
                 }
             }
         }
@@ -414,5 +424,30 @@ export class ControMax<
         } as const
         void this.emit('triggerGrouped', eventData)
         void this.emit('releaseGrouped', eventData)
+    }
+
+    /**
+     * Trigger movement in a specific direction programmatically.
+     * @param direction - Movement direction: 'forward' (or 'up'), 'backward' (or 'down'), 'left', 'right'
+     * @param pressed - true for keydown/press, false for keyup/release
+     */
+    setMovement(direction: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down', pressed: boolean): void {
+        // Map direction names to movement indices
+        // Movement indices: 0=forward/up (W), 1=left (A), 2=backward/down (S), 3=right (D)
+        const directionMap: Record<string, number> = {
+            forward: 0,
+            up: 0,
+            left: 1,
+            backward: 2,
+            down: 2,
+            right: 3,
+        }
+
+        const movementIndex = directionMap[direction]
+        if (movementIndex === undefined) {
+            throw new Error(`Invalid direction: ${direction}. Use 'forward', 'backward', 'left', 'right', 'up', or 'down'.`)
+        }
+
+        this.handleMovementKeyInternal!(movementIndex, pressed)
     }
 }
