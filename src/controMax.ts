@@ -155,9 +155,24 @@ export class ControMax<
 
         this.pressedKeys = new Set<AllKeyCodes>()
 
+        // Track which movement indices are currently active (pressed) to prevent duplicate calls
+        const activeMovementIndices = new Set<number>()
+
         // Handle movement key by index (0=forward/up, 1=left, 2=backward/down, 3=right)
         const handleMovementKey = (movementIndex: number, pressed: boolean) => {
             if (movementIndex < 0 || movementIndex >= keysMovementConfig.length) return
+
+            // Ignore duplicate presses/releases (similar to how pressedKeys works)
+            if (pressed && activeMovementIndices.has(movementIndex)) return
+            if (!pressed && !activeMovementIndices.has(movementIndex)) return
+
+            // Update active state
+            if (pressed) {
+                activeMovementIndices.add(movementIndex)
+            } else {
+                activeMovementIndices.delete(movementIndex)
+            }
+
             const movementAction = keysMovementConfig[movementIndex]!
             currentMovementVector.keyboard[movementAction[0]] += movementAction[1] * (pressed ? 1 : -1)
             updateMovementVector({ keyboard: true })
@@ -309,6 +324,11 @@ export class ControMax<
         const visibilitychangeListener = () => {
             if (document.visibilityState !== 'hidden') return
             for (const code of this.pressedKeys) this.pressedKeyOrButtonChanged({ code }, false)
+            // Also clear all active movement indices when page becomes hidden
+            // Create a copy of the set to avoid modification during iteration
+            for (const movementIndex of [...activeMovementIndices]) {
+                handleMovementKey(movementIndex, false)
+            }
         }
 
         // For now, all browsers don't fire "keyup" event if the user released key after alt+tab or tab switch
