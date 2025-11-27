@@ -224,7 +224,7 @@ export class ControMax<
 
                     if (preventDefault ?? defaultControlOptions?.preventDefault ?? true) doPreventDefault()
                     if ((disabled ?? defaultControlOptions?.disabled) && buttonPressed) continue
-                    void this.emit(buttonPressed ? 'trigger' : 'release', { command: `${sectionName}.${name}` as any, schema: command })
+                    void this.emit(buttonPressed ? 'trigger' : 'release', { command: `${sectionName}.${name}` as AllSchemaCommands<T> })
                 }
             }
 

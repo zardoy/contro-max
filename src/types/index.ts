@@ -94,7 +94,6 @@ type SubPath<T, Key extends keyof T> = Key extends string
 export type AllSchemaCommands<T extends InputCommandsSchema | InputGroupedCommandsSchema> = SubPath<T, keyof T>
 export type CommandEventArgument<T extends InputCommandsSchema> = {
     command: AllSchemaCommands<T>
-    schema: SchemaCommand
 }
 export type GroupedCommandEventDeviceType =
     | // TODO doc: should rely on index rather than button or key
